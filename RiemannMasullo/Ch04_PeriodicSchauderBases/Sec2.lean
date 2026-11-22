@@ -884,7 +884,19 @@ theorem cyclicPeriodization_quotient_equiv (γ : ℝ) (hγ : 1 < γ) :
 /-- Paper: Remark 4.2.1.8, p. 170. The exponential system is regular in
 the smooth topology. -/
 theorem cyclicExponential_regular :
-    SchauderBasis.IsRegular (cyclicExponential ∘ freq) := by sorry
+    SchauderBasis.IsRegular (cyclicExponential ∘ freq) := by
+  -- A monomial has its own coefficient one, and coefficients are bounded by the uniform norm,
+  -- so no monomial lies in the open unit ball of that norm.
+  let i : ElementarySchwartzIndex 0 1 0 := (0, 0, fun _ ↦ 0, 0)
+  have hp : Continuous (fun f : S ↦ elementarySchwartzSeminorm i f) :=
+    elementarySchwartz_withSeminorms.continuous_seminorm i
+  refine ⟨{f | elementarySchwartzSeminorm i f < 1},
+    (isOpen_lt hp continuous_const).mem_nhds
+      ((map_zero (elementarySchwartzSeminorm i)).trans_lt one_pos), fun n hn ↦ ?_⟩
+  have h := norm_fourierCoeffOn_iteratedDeriv_cyclic (cyclicExponential (freq n)) (freq n) 0
+  rw [iteratedDeriv_zero, ← cyclicFourierCoeff_eq_on, cyclicFourierCoeff_exponential,
+    ite_eq_left rfl, norm_one] at h
+  exact lt_irrefl _ (h.trans_lt hn)
 
 /-- Paper: Remark 4.2.1.8, p. 170. The exponential system is unbounded
 in the smooth topology. -/
